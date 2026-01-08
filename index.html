@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web OS - Windows 11 Style</title>
+    <style>
+        /* --- CSS VARIABLES & RESET --- */
+        :root {
+            --bg-color: #f3f3f3;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --window-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            --accent-color: #0078d4;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none; /* Mencegah seleksi teks agar terasa seperti app */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop') no-repeat center center/cover;
+        }
+
+        /* --- LOGIN SCREEN --- */
+        #login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            transition: top 0.5s ease-in-out;
+        }
+
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: url('https://ui-avatars.com/api/?name=User&background=random&size=128') center/cover;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .login-input {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 2px solid rgba(255,255,255,0.5);
+            background: rgba(0,0,0,0.3);
+            color: white;
+            outline: none;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .login-input::placeholder { color: #ddd; }
+
+        .login-btn {
+            padding: 8px 20px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .login-btn:hover { background: rgba(255,255,255,0.4); }
+
+        /* --- DESKTOP --- */
+        #desktop {
+            height: calc(100vh - 48px); /* Kurangi tinggi taskbar */
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 15px;
+        }
+
+        .app-icon {
+            width: 80px;
+            height: 90px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 5px;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            transition: background 0.2s;
+        }
+
+        .app-icon:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .folder-img {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 5px;
+            /* Icon Folder SVG */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC107'%3E%3Cpath d='M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+        }
+
+        /* --- WINDOWS (APLIKASI) --- */
+        .window {
+            position: absolute;
+            top: 100px;
+            left: 200px;
+            width: 500px;
+            height: 400px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: var(--window-shadow);
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            border: 1px solid rgba(0,0,0,0.1);
+            resize: both;
+            overflow: hidden;
+            min-width: 300px;
+            min-height: 200px;
+            animation: popIn 0.2s ease-out;
+            z-index: 10;
+        }
+
+        .window.maximized {
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: calc(100vh - 48px) !important;
+            border-radius: 0;
+            resize: none;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .window-header {
+            height: 40px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            border-bottom: 1px solid #eee;
+            cursor: default;
+        }
+
+        .window-title { font-size: 14px; font-weight: bold; }
+
+        .window-controls { display: flex; gap: 5px; }
+        
+        .control-btn {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .control-btn:hover { background: #eee; }
+        .control-btn.close:hover { background: #e81123; color: white; }
+
+        .window-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+
+        /* Content inside folders */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+        }
+
+        .photo-slot {
+            aspect-ratio: 1;
+            border: 2px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 12px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .photo-slot:hover { border-color: var(--accent-color); color: var(--accent-color); }
+
+        /* --- TASKBAR --- */
+        #taskbar {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 48px;
+            background: rgba(243, 243, 243, 0.85);
+            backdrop-filter: blur(15px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            border-top: 1px solid rgba(255,255,255,0.5);
+            z-index: 1000;
+        }
+
+        .start-menu {
+            display: flex;
+            gap: 8px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .taskbar-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .taskbar-icon:hover { background: rgba(255,255,255,0.6); }
+        .taskbar-icon img, .taskbar-icon svg { width: 24px; height: 24px; }
+
+        /* System Tray (Jam, Baterai) */
+        .system-tray {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .tray-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            cursor: pointer;
+        }
+        
+        .tray-icons { display: flex; gap: 8px; font-size: 14px;}
+
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="profile-pic"></div>
+        <h2 style="margin-bottom: 20px;">Akmal</h2>
+        <input type="password" id="passwordInput" class="login-input">
+        <button class="login-btn" onclick="checkLogin()">Masuk</button>
+        <p id="errorMsg" style="color: #ffcccb; font-size: 12px; display: none; margin-top: 10px;">Password salah!</p>
+    </div>
+
+    <div id="desktop">
+        <div class="app-icon" ondblclick="openWindow('folder1')">
+            <div class="folder-img"></div>
+            <span>Folder 1</span>
+        </div>
+        <div class="app-icon" ondblclick="openWindow('folder2')">
+            <div class="folder-img"></div>
+            <span>Folder 2</span>
+        </div>
+        <div class="app-icon" ondblclick="openWindow('folder3')">
+            <div class="folder-img"></div>
+            <span>Folder 3</span>
+        </div>
+    </div>
+
+    <div id="window-folder1" class="window">
+        <div class="window-header" onmousedown="dragMouseDown(event, 'window-folder1')">
+            <div class="window-title">📁 Folder 1 - Foto Liburan</div>
+            <div class="window-controls">
+                <div class="control-btn" onclick="minimizeWindow('window-folder1')">_</div>
+                <div class="control-btn" onclick="maximizeWindow('window-folder1')">☐</div>
+                <div class="control-btn close" onclick="closeWindow('window-folder1')">✕</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <h3>Koleksi Foto</h3>
+            <div class="photo-grid">
+                <div class="photo-slot">Foto 1</div>
+                <div class="photo-slot">Foto 2</div>
+                <div class="photo-slot">Foto 3</div>
+                <div class="photo-slot">Foto 4</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="window-folder2" class="window" style="top: 150px; left: 250px;">
+        <div class="window-header" onmousedown="dragMouseDown(event, 'window-folder2')">
+            <div class="window-title">📁 Folder 2 - Dokumen</div>
+            <div class="window-controls">
+                <div class="control-btn" onclick="minimizeWindow('window-folder2')">_</div>
+                <div class="control-btn" onclick="maximizeWindow('window-folder2')">☐</div>
+                <div class="control-btn close" onclick="closeWindow('window-folder2')">✕</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="photo-grid">
+                <div class="photo-slot">Dokumen A</div>
+                <div class="photo-slot">Dokumen B</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="window-folder3" class="window" style="top: 200px; left: 300px;">
+        <div class="window-header" onmousedown="dragMouseDown(event, 'window-folder3')">
+            <div class="window-title">📁 Folder 3 - Lainnya</div>
+            <div class="window-controls">
+                <div class="control-btn" onclick="minimizeWindow('window-folder3')">_</div>
+                <div class="control-btn" onclick="maximizeWindow('window-folder3')">☐</div>
+                <div class="control-btn close" onclick="closeWindow('window-folder3')">✕</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="photo-grid">
+                <div class="photo-slot">File X</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="taskbar">
+        <div style="font-size: 13px; font-weight: 500; display:flex; align-items:center; gap:5px;">
+            ☁️ 24°C Cerah
+        </div>
+
+        <div class="start-menu">
+            <div class="taskbar-icon" title="Start">
+                <svg viewBox="0 0 24 24" fill="#0078d4"><path d="M4 4h7v7H4V4zm8 0h7v7h-7V4zM4 12h7v7H4v-7zm8 0h7v7h-7v-7z"/></svg>
+            </div>
+            <div class="taskbar-icon" onclick="openWindow('folder1')" title="Folder 1">📁</div>
+            <div class="taskbar-icon" onclick="openWindow('folder2')" title="Folder 2">📁</div>
+            <div class="taskbar-icon" onclick="openWindow('folder3')" title="Folder 3">📁</div>
+        </div>
+
+        <div class="system-tray">
+            <div class="tray-icons">
+                <span>🔋 100%</span>
+                <span>🔊</span>
+                <span>📶</span>
+            </div>
+            <div class="tray-item">
+                <span id="clock-time" style="font-weight: bold;">00:00</span>
+                <span id="clock-date">01/01/2024</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- LOGIC: LOGIN ---
+        function checkLogin() {
+            const pass = document.getElementById('passwordInput').value;
+            // Password diset 'admin'
+            if (pass === 'marev') {
+                document.getElementById('login-screen').style.top = '-100vh';
+            } else {
+                document.getElementById('errorMsg').style.display = 'block';
+            }
+        }
+
+        // --- LOGIC: WINDOW MANAGEMENT ---
+        let zIndexCounter = 10;
+
+        function openWindow(id) {
+            const win = document.getElementById('window-' + id);
+            win.style.display = 'flex';
+            win.style.transform = 'scale(1)';
+            win.style.opacity = '1';
+            bringToFront(win);
+        }
+
+        function closeWindow(id) {
+            const win = document.getElementById(id);
+            win.style.transform = 'scale(0.9)';
+            win.style.opacity = '0';
+            setTimeout(() => {
+                win.style.display = 'none';
+                win.classList.remove('maximized');
+            }, 200);
+        }
+
+        function minimizeWindow(id) {
+            const win = document.getElementById(id);
+            win.style.transform = 'scale(0.7) translateY(300px)';
+            win.style.opacity = '0';
+            setTimeout(() => {
+                win.style.display = 'none';
+            }, 200);
+        }
+
+        function maximizeWindow(id) {
+            const win = document.getElementById(id);
+            win.classList.toggle('maximized');
+            bringToFront(win);
+        }
+
+        function bringToFront(element) {
+            zIndexCounter++;
+            element.style.zIndex = zIndexCounter;
+        }
+
+        // --- LOGIC: DRAG WINDOW ---
+        function dragMouseDown(e, id) {
+            e = e || window.event;
+            // Hanya drag jika yang diklik bukan tombol kontrol
+            if(e.target.classList.contains('control-btn')) return;
+
+            e.preventDefault();
+            const elmnt = document.getElementById(id);
+            bringToFront(elmnt); // Klik header membuat window jadi paling depan
+
+            if(elmnt.classList.contains('maximized')) return; // Jangan drag kalau dimaximize
+
+            let pos3 = e.clientX;
+            let pos4 = e.clientY;
+
+            document.onmouseup = closeDragElement;
+            document.onmousemove = elementDrag;
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                let pos1 = pos3 - e.clientX;
+                let pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        // --- LOGIC: JAM ---
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+
+            document.getElementById('clock-time').innerText = `${hours}:${minutes}`;
+            document.getElementById('clock-date').innerText = `${day}/${month}/${year}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Fitur tambahan: Klik icon desktop juga bring to front window jika sudah terbuka
+        document.querySelectorAll('.window').forEach(win => {
+            win.addEventListener('mousedown', () => bringToFront(win));
+        });
+
+        // Trigger enter di password
+        document.getElementById("passwordInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                checkLogin();
+            }
+        });
+
+    </script>
+</body>
+</html>
